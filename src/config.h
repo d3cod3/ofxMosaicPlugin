@@ -86,7 +86,7 @@
 #define MAIN_FONT               "ofxbraitsch/fonts/Verdana.ttf"
 #define LIVECODING_FONT         "fonts/IBMPlexMono-Medium.ttf"
 
-#define PLUGINS_FOLDER          "plugins/"
+#define PLUGINS_FOLDER          "../plugins/"
 
 #define LUA_SYNTAX              "livecoding/luaSyntax.xml"
 #define PYTHON_SYNTAX           "livecoding/pythonSyntax.xml"
@@ -106,6 +106,7 @@
 #define OFXVP_OBJECT_CAT_MATH           "math"
 #define OFXVP_OBJECT_CAT_SCRIPTING      "scripting"
 #define OFXVP_OBJECT_CAT_SOUND          "sound"
+#define OFXVP_OBJECT_CAT_STRING         "string"
 #define OFXVP_OBJECT_CAT_TEXTURE        "texture"
 #define OFXVP_OBJECT_CAT_VIDEO          "video"
 #define OFXVP_OBJECT_CAT_WINDOWING      "windowing"
