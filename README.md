@@ -37,3 +37,7 @@ git submodule init
 git submodule update
 
 ```
+
+## WRITING PLUGINS
+
+Check the README inside the example
