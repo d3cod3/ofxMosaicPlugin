@@ -27,3 +27,13 @@ git clone https://github.com/d3cod3/ofxMidi
 git clone https://github.com/npisanti/ofxPDSP
 
 ```
+
+Then clone ofxMosaicPlugin
+
+```bash
+
+git clone https://github.com/d3cod3/ofxMosaicPlugin
+git submodule init
+git submodule update
+
+```
