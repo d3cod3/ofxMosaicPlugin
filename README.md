@@ -38,6 +38,6 @@ git submodule update
 
 ```
 
-## WRITING PLUGINS
+## WRITING PLUGINS
 
 Check the README inside the example
