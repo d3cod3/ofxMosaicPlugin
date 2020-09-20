@@ -1,6 +1,6 @@
 # ofxMosaicPlugin
 
-An ofxVisualProgramming specific code reduction for optimizing Mosaic plugins compile
+An ofxVisualProgramming specific code reduction for optimizing Mosaic plugins compile time and binary size
 
 ## DEPENDENCIES
 
