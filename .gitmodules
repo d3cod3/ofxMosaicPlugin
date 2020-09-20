@@ -1,0 +1,3 @@
+[submodule "example_ofxMosaicPlugin"]
+	path = example_ofxMosaicPlugin
+	url = https://github.com/d3cod3/Mosaic-Plugin
