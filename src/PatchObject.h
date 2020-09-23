@@ -109,7 +109,8 @@ public:
     virtual void            resetResolution(int fromID=-1, int newWidth=-1, int newHeight=-1) {}
 
     // Keyboard Events
-    void                    keyPressed(int key,map<int,shared_ptr<PatchObject>> &patchObjects);
+    void                    keyPressed(ofKeyEventArgs &e,map<int,shared_ptr<PatchObject>> &patchObjects);
+    void                    keyReleased(ofKeyEventArgs &e,map<int,shared_ptr<PatchObject>> &patchObjects);
 
     // Sound
     void                    audioIn(ofSoundBuffer &inputBuffer);
@@ -167,6 +168,7 @@ public:
     float                   getObjectHeight() { return height; }
     int                     getOutputWidth() { return output_width; }
     int                     getOutputHeight() { return output_height; }
+    float                   getConfigmenuWidth() { return configMenuWidth; }
 
     string                  getFilepath() { return filepath; }
 
@@ -190,6 +192,7 @@ public:
     // patch object connections
     vector<shared_ptr<PatchLink>>       outPut;
     vector<int>                         linksToDisconnect;
+    vector<int>                         objectsSelected;
     vector<bool>                        inletsConnected;
 
     void                                *_inletParams[MAX_INLETS];
@@ -215,6 +218,7 @@ protected:
     int                     fontSize;
     ImVec2                  canvasTranslation;
     float                   canvasScale;
+    float                   configMenuWidth;
     float                   scaleFactor;
 
     // Core vars
