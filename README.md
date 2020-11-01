@@ -23,7 +23,7 @@ cd <your_openframeworks_release_folder>/addons
 git clone https://github.com/npisanti/ofxAudioFile
 git clone https://github.com/d3cod3/ofxFontStash
 git clone https://github.com/d3cod3/ofxImGui
-git clone https://github.com/d3cod3/ofxMidi
+git clone https://github.com/danomatika/ofxMidi
 git clone https://github.com/npisanti/ofxPDSP
 
 ```
