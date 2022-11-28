@@ -67,6 +67,7 @@
 #define COLOR_ARRAY_LINK        ofColor(120,180,120,255)
 #define COLOR_PIXELS_LINK       ofColor(0,180,140,255)
 #define COLOR_TEXTURE_LINK      ofColor(120,255,255,255)
+#define COLOR_FBO_LINK          ofColor(255,0,170,255)
 #define COLOR_AUDIO_LINK        ofColor(255,255,120,255)
 #define COLOR_SCRIPT_LINK       ofColor(255,128,128,255)
 
@@ -75,6 +76,7 @@
 #define COLOR_ARRAY             ofColor(120,180,120,255)
 #define COLOR_PIXELS            ofColor(0,180,140,255)
 #define COLOR_TEXTURE           ofColor(120,255,255,255)
+#define COLOR_FBO               ofColor(255,0,170,255)
 #define COLOR_AUDIO             ofColor(255,255,120,255)
 #define COLOR_SCRIPT            ofColor(255,128,128,255)
 #define COLOR_UNKNOWN           ofColor(255,126,000,255)
@@ -83,11 +85,6 @@
 #define LIVECODING_FONT         "fonts/IBMPlexMono-Medium.ttf"
 
 #define PLUGINS_FOLDER          "../plugins/"
-
-#define LUA_SYNTAX              "livecoding/luaSyntax.xml"
-#define PYTHON_SYNTAX           "livecoding/pythonSyntax.xml"
-
-#define LIVECODING_COLORS       "livecoding/colorScheme.xml"
 
 #define	NOTES                           128
 #define MOSAIC_DEFAULT_BUFFER_SIZE     1024
