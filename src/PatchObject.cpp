@@ -36,6 +36,7 @@
 PatchObject::PatchObject(const std::string& _customUID ) : ofxVPHasUID(_customUID) {
     nId                 = -1;
     name                = "none";
+    specialName         = "";
     filepath            = "none";
     patchFile           = "";
     patchFolderPath     = "";
@@ -57,8 +58,13 @@ PatchObject::PatchObject(const std::string& _customUID ) : ofxVPHasUID(_customUI
     isAudioOUTObject        = false;
     isPDSPPatchableObject   = false;
     isTextureObject         = false;
+    isHardwareObject        = false;
     isResizable             = false;
     willErase               = false;
+
+    initWirelessLink        = false;
+    resetWirelessLink       = false;
+    resetWirelessPin        = -1;
 
     width       = OBJECT_WIDTH;
     height      = OBJECT_HEIGHT;
@@ -141,17 +147,111 @@ void PatchObject::update(map<int,shared_ptr<PatchObject>> &patchObjects, pdsp::E
             if(!outPut[i]->isDisabled && outPut[i]->fromOutletID == out && patchObjects[outPut[i]->toObjectID]!=nullptr && !patchObjects[outPut[i]->toObjectID]->getWillErase()){
                 outPut[i]->posFrom = getOutletPosition(out);
                 outPut[i]->posTo = patchObjects[outPut[i]->toObjectID]->getInletPosition(outPut[i]->toInletID);
+
+                // check first if link is deactivated by shift click
+                outPut[i]->isDeactivated = false;
+                for(size_t di=0;di<linksDeactivated.size();di++){
+                    if(outPut[i]->id == linksDeactivated.at(di)){
+                        outPut[i]->isDeactivated = true;
+                        break;
+                    }
+                }
                 // send data through links
-                patchObjects[outPut[i]->toObjectID]->_inletParams[outPut[i]->toInletID] = _outletParams[out];
+                if(!outPut[i]->isDeactivated){
+                    if(!patchObjects[outPut[i]->toObjectID]->inletsConnected[outPut[i]->toInletID]){
+                        patchObjects[outPut[i]->toObjectID]->inletsConnected[outPut[i]->toInletID] = true;
+                        if(outPut[i]->type == VP_LINK_AUDIO && patchObjects[outPut[i]->toObjectID]->getIsPDSPPatchableObject()){
+                            if(this->getIsPDSPPatchableObject() || this->getName() == "audio device"){
+                                this->pdspOut[outPut[i]->fromOutletID] >> patchObjects[outPut[i]->toObjectID]->pdspIn[outPut[i]->toInletID];
+                            }
+                        }
+                        patchObjects[outPut[i]->toObjectID]->_inletParams[outPut[i]->toInletID] = _outletParams[out];
+                    }else{
+                        patchObjects[outPut[i]->toObjectID]->_inletParams[outPut[i]->toInletID] = _outletParams[out];
+                    }
+
+                }else{
+                    patchObjects[outPut[i]->toObjectID]->inletsConnected[outPut[i]->toInletID] = false;
+                    if(outPut[i]->type == VP_LINK_AUDIO){
+                        if(patchObjects[outPut[i]->toObjectID]->getIsPDSPPatchableObject() && patchObjects[outPut[i]->toObjectID]->pdspIn[outPut[i]->toInletID].getInputsList().size() > 0){
+                            patchObjects[outPut[i]->toObjectID]->pdspIn[outPut[i]->toInletID].disconnectIn();
+                        }
+                    }
+                }
+
             }
         }
     }
+
     updateObjectContent(patchObjects);
 
     if(this->isPDSPPatchableObject){
         updateAudioObjectContent(engine);
     }
 
+}
+
+//--------------------------------------------------------------
+void PatchObject::updateWirelessLinks(map<int,shared_ptr<PatchObject>> &patchObjects){
+
+    if(willErase) return;
+
+    // Continuosly update float type ONLY wireless links
+    for(map<int,shared_ptr<PatchObject>>::iterator it = patchObjects.begin(); it != patchObjects.end(); it++ ){
+        for(int in=0;in<it->second->getNumInlets();in++){
+            for(int out=0;out<this->getNumOutlets();out++){
+                if(it->second->getInletWirelessReceive(in) && this->getOutletWirelessSend(out) && this->getOutletType(out) == it->second->getInletType(in) && this->getOutletType(out) == VP_LINK_NUMERIC && this->getOutletID(out) == it->second->getInletID(in)){
+                    if(it->second->inletsConnected[in]){
+                        it->second->_inletParams[in] = this->_outletParams[out];
+                    }
+                }
+            }
+        }
+    }
+
+    // manually send data through wireless links ( if var ID, transport data )
+    if(initWirelessLink && resetWirelessPin != -1){
+        initWirelessLink = false;
+        if(this->getOutletWirelessSend(resetWirelessPin)){
+            for(map<int,shared_ptr<PatchObject>>::iterator it = patchObjects.begin(); it != patchObjects.end(); it++ ){
+                for(int in=0;in<it->second->getNumInlets();in++){
+                    if(this->getOutletType(resetWirelessPin) == it->second->getInletType(in) && this->getOutletID(resetWirelessPin) == it->second->getInletID(in) && it->second->getInletWirelessReceive(in)){
+                        if(!it->second->inletsConnected[in]){ // open wireless transport
+                            it->second->inletsConnected[in] = true;
+                            if(this->getOutletType(resetWirelessPin) == VP_LINK_AUDIO && this->getIsPDSPPatchableObject() && it->second->getIsPDSPPatchableObject()){
+                               this->pdspOut[resetWirelessPin] >> it->second->pdspIn[in];
+                            }
+                            it->second->_inletParams[in] = this->_outletParams[resetWirelessPin];
+                            //std::cout << "Wireless connection ON between " << this->getName() << " and " << it->second->getName() << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+        resetWirelessPin = -1;
+    }
+
+
+    // Manually close wireless link from internal object code ( GUI )
+    if(resetWirelessLink && resetWirelessPin != -1){
+        resetWirelessLink = false;
+        for(map<int,shared_ptr<PatchObject>>::iterator it = patchObjects.begin(); it != patchObjects.end(); it++ ){
+            if(this->getId() != it->first){
+                for(int in=0;in<it->second->getNumInlets();in++){
+                    if(this->getOutletType(resetWirelessPin) == it->second->getInletType(in) && this->getOutletID(resetWirelessPin) == it->second->getInletID(in)){
+                        if(it->second->inletsConnected[in]){ // close wireless transport
+                            it->second->inletsConnected[in] = false;
+                            if(this->getOutletType(resetWirelessPin) == VP_LINK_AUDIO && this->getIsPDSPPatchableObject() && it->second->getIsPDSPPatchableObject() && it->second->pdspIn[in].getInputsList().size() > 0){
+                                it->second->pdspIn[in].disconnectIn();
+                            }
+                            //std::cout << "Wireless connection OFF between " << this->getName() << " and " << it->second->getName() << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+        resetWirelessPin = -1;
+    }
 }
 
 //--------------------------------------------------------------
@@ -173,8 +273,15 @@ void PatchObject::drawImGuiNode(ImGuiEx::NodeCanvas& _nodeCanvas, map<int,shared
     ImVec2 imSize( this->width, this->height );
 
     // Begin Node
+    string displayName = "";
+    if(this->getSpecialName() != ""){
+        displayName = PatchObject::getDisplayName()+" "+this->getSpecialName();
+    }else{
+        displayName = PatchObject::getDisplayName();
+    }
+
     static bool isNodeVisible;
-    isNodeVisible = _nodeCanvas.BeginNode( nId, PatchObject::getUID().c_str(), PatchObject::getDisplayName(), imPos, imSize, this->getNumInlets(), this->getNumOutlets(), this->getIsResizable(), this->getIsTextureObject() );
+    isNodeVisible = _nodeCanvas.BeginNode( nId, PatchObject::getUID().c_str(), displayName, imPos, imSize, this->getNumInlets(), this->getNumOutlets(), this->getIsResizable(), this->getIsTextureObject() );
 
     // Always draw [in/out]lets (so wires render correctly)
     // Updates pin positions
@@ -205,7 +312,7 @@ void PatchObject::drawImGuiNode(ImGuiEx::NodeCanvas& _nodeCanvas, map<int,shared
                 }
             }
 
-            ImGuiEx::NodeConnectData connectData = _nodeCanvas.AddNodePin( nId, i, inletsNames.at(i).c_str(), tempLinkData, getInletTypeName(i), inletsConnected[i], IM_COL32(pinCol.r,pinCol.g,pinCol.b,pinCol.a), ImGuiExNodePinsFlags_Left );
+            ImGuiEx::NodeConnectData connectData = _nodeCanvas.AddNodePin( nId, i, inletsNames.at(i).c_str(), tempLinkData, getInletTypeName(i), getInletWirelessReceive(i), inletsConnected[i], IM_COL32(pinCol.r,pinCol.g,pinCol.b,pinCol.a), ImGuiExNodePinsFlags_Left );
 
             inletsPositions[i] = _nodeCanvas.getInletPosition(nId,i);
 
@@ -263,7 +370,7 @@ void PatchObject::drawImGuiNode(ImGuiEx::NodeCanvas& _nodeCanvas, map<int,shared
                 }
             }
 
-            _nodeCanvas.AddNodePin( nId, i, getOutletName(i).c_str(), tempLinkData, getOutletTypeName(i), getIsOutletConnected(i), IM_COL32(pinCol.r,pinCol.g,pinCol.b,pinCol.a), ImGuiExNodePinsFlags_Right );
+            _nodeCanvas.AddNodePin( nId, i, getOutletName(i).c_str(), tempLinkData, getOutletTypeName(i), getOutletWirelessSend(i), getIsOutletConnected(i), IM_COL32(pinCol.r,pinCol.g,pinCol.b,pinCol.a), ImGuiExNodePinsFlags_Right );
 
             outletsPositions[i] = _nodeCanvas.getOutletPosition(nId,i);
         }
@@ -294,7 +401,10 @@ void PatchObject::drawImGuiNode(ImGuiEx::NodeCanvas& _nodeCanvas, map<int,shared
 
 
         // Refresh links to eventually disconnect ( backspace key )
-        linksToDisconnect = _nodeCanvas.getSelectedLinks();
+        linksToDisconnect   = _nodeCanvas.getSelectedLinks();
+
+        // Refresh links deactivated
+        linksDeactivated    = _nodeCanvas.getDeactivatedLinks();
 
         // Refresh objects selected to eventually duplicate or delete ( cmd-d or backsapce )
         objectsSelected = _nodeCanvas.getSelectedNodes();
@@ -383,6 +493,7 @@ bool PatchObject::connectTo(map<int,shared_ptr<PatchObject>> &patchObjects, int 
         tempLink->toObjectID    = this->getId();
         tempLink->toInletID     = toInlet;
         tempLink->isDisabled    = false;
+        tempLink->isDeactivated = false;
 
         patchObjects[fromObjectID]->outPut.push_back(tempLink);
 
@@ -544,10 +655,14 @@ bool PatchObject::loadConfig(shared_ptr<ofAppGLFWWindow> &mainWindow, pdsp::Engi
             if(XML.pushTag("inlets")){
                 int totalInlets = XML.getNumTags("link");
                 inletsPositions.clear();
+                inletsIDs.clear();
+                inletsWirelessReceive.clear();
                 for (int i=0;i<totalInlets;i++){
                     if(XML.pushTag("link",i)){
                         inletsType.push_back(XML.getValue("type", 0));
                         inletsNames.push_back(XML.getValue("name", ""));
+                        inletsIDs.push_back("");
+                        inletsWirelessReceive.push_back(false);
                         inletsPositions.push_back( ImVec2(this->x, this->y + this->height*.5f) );
                         XML.popTag();
                     }
@@ -561,10 +676,14 @@ bool PatchObject::loadConfig(shared_ptr<ofAppGLFWWindow> &mainWindow, pdsp::Engi
             if(XML.pushTag("outlets")){
                 int totalOutlets = XML.getNumTags("link");
                 outletsPositions.clear();
+                outletsIDs.clear();
+                outletsWirelessSend.clear();
                 for (int i=0;i<totalOutlets;i++){
                     if(XML.pushTag("link",i)){
                         outletsType.push_back(XML.getValue("type", 0));
                         outletsNames.push_back(XML.getValue("name", ""));
+                        outletsIDs.push_back("");
+                        outletsWirelessSend.push_back(false);
                         outletsPositions.push_back( ImVec2( this->x + this->width, this->y + this->height*.5f) );
                         XML.popTag();
                     }
@@ -941,6 +1060,8 @@ string PatchObject::getInletTypeName(const int& iid) const{
             break;
         case 6: return "ofPixels";
             break;
+        case 7: return "ofFbo";
+            break;
         default:
             break;
     }
@@ -964,6 +1085,8 @@ string PatchObject::getOutletTypeName(const int& oid) const{
         case 5: return specialLinkTypeName;
             break;
         case 6: return "ofPixels";
+            break;
+        case 7: return "ofFbo";
             break;
         default:
             break;
@@ -999,6 +1122,7 @@ void PatchObject::setPatchfile(string pf) {
 
 //--------------------------------------------------------------
 void PatchObject::keyPressed(ofKeyEventArgs &e,map<int,shared_ptr<PatchObject>> &patchObjects){
+    unusedArgs(patchObjects);
     if(!willErase){
 
     }
@@ -1008,12 +1132,12 @@ void PatchObject::keyPressed(ofKeyEventArgs &e,map<int,shared_ptr<PatchObject>> 
 void PatchObject::keyReleased(ofKeyEventArgs &e,map<int,shared_ptr<PatchObject>> &patchObjects){
     if(!willErase){
         if(e.key == OF_KEY_BACKSPACE){
-            for (int j=0;j<linksToDisconnect.size();j++){
+            for (int j=0;j<static_cast<int>(linksToDisconnect.size());j++){
                 disconnectLink(patchObjects,linksToDisconnect.at(j));
             }
             linksToDisconnect.clear();
 
-            for(int j=0;j<objectsSelected.size();j++){
+            for(int j=0;j<static_cast<int>(objectsSelected.size());j++){
                 if(objectsSelected.at(j) == this->nId){
                     ofNotifyEvent(removeEvent, objectsSelected.at(j));
                     this->setWillErase(true);
@@ -1022,7 +1146,7 @@ void PatchObject::keyReleased(ofKeyEventArgs &e,map<int,shared_ptr<PatchObject>>
             objectsSelected.clear();
         // OSX: CMD-D, WIN/LINUX: CTRL-D    (DUPLICATE SELECTED OBJECTS)
         }else if(e.hasModifier(MOD_KEY) && e.keycode == 68){
-            for(int j=0;j<objectsSelected.size();j++){
+            for(int j=0;j<static_cast<int>(objectsSelected.size());j++){
                 if(objectsSelected.at(j) == this->nId){
                     ofNotifyEvent(duplicateEvent, objectsSelected.at(j));
                 }
