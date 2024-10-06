@@ -4,12 +4,12 @@ An ofxVisualProgramming specific code reduction for optimizing Mosaic plugins co
 
 ## DEPENDENCIES
 
-openFrameworks 0.11.2
+openFrameworks 0.12.0
 
 - ofxOsc
 - ofxXmlSettings
 
-- ofxAudioFile
+- ofxAudioFile  **-- FORK**
 - ofxImGui      **-- FORK**
 - ofxMidi
 - ofxPDSP       **-- FORK**
@@ -19,7 +19,7 @@ openFrameworks 0.11.2
 
 cd <your_openframeworks_release_folder>/addons
 
-git clone https://github.com/npisanti/ofxAudioFile
+git clone https://github.com/d3cod3/ofxAudioFile
 git clone https://github.com/d3cod3/ofxImGui
 git clone https://github.com/danomatika/ofxMidi
 git clone https://github.com/d3cod3/ofxPDSP

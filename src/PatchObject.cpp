@@ -58,6 +58,7 @@ PatchObject::PatchObject(const std::string& _customUID ) : ofxVPHasUID(_customUI
     isAudioOUTObject        = false;
     isPDSPPatchableObject   = false;
     isTextureObject         = false;
+    isSharedContextObject   = false;
     isHardwareObject        = false;
     isResizable             = false;
     willErase               = false;
@@ -628,7 +629,12 @@ bool PatchObject::loadConfig(shared_ptr<ofAppGLFWWindow> &mainWindow, pdsp::Engi
     ofxXmlSettings XML;
     bool loaded = false;
 
+
+#if OF_VERSION_MAJOR == 0 && OF_VERSION_MINOR < 12
     if (XML.loadFile(configFile)){
+#else
+    if (XML.load(configFile)){
+#endif
 
         patchFile = configFile;
 
@@ -708,7 +714,11 @@ bool PatchObject::saveConfig(bool newConnection){
     bool saved = false;
 
     if(patchFile != ""){
-        if(XML.loadFile(patchFile)){
+#if OF_VERSION_MAJOR == 0 && OF_VERSION_MINOR < 12
+        if (XML.loadFile(patchFile)){
+#else
+        if (XML.load(patchFile)){
+#endif
             int totalObjects = XML.getNumTags("object");
             // first save of the object
             if(nId == -1){
@@ -859,7 +869,11 @@ bool PatchObject::saveConfig(bool newConnection){
                     }
                 }
             }
+#if OF_VERSION_MAJOR == 0 && OF_VERSION_MINOR < 12
             saved = XML.saveFile();
+#else
+            saved = XML.save();
+#endif
         }
     }
 
@@ -873,7 +887,11 @@ bool PatchObject::removeLinkFromConfig(int outlet, int toObjectID, int toInletID
     bool saved = false;
 
     if(patchFile != ""){
-        if(XML.loadFile(patchFile)){
+#if OF_VERSION_MAJOR == 0 && OF_VERSION_MINOR < 12
+        if (XML.loadFile(patchFile)){
+#else
+        if (XML.load(patchFile)){
+#endif
             int totalObjects = XML.getNumTags("object");
             for(int i=0;i<totalObjects;i++){
                 if(XML.pushTag("object", i)){
@@ -903,7 +921,11 @@ bool PatchObject::removeLinkFromConfig(int outlet, int toObjectID, int toInletID
             }
         }
 
-        saved = XML.saveFile();
+#if OF_VERSION_MAJOR == 0 && OF_VERSION_MINOR < 12
+            saved = XML.saveFile();
+#else
+            saved = XML.save();
+#endif
     }
 
     return saved;
@@ -915,7 +937,11 @@ bool PatchObject::clearCustomVars(){
     bool saved = false;
 
     if(patchFile != ""){
-        if(XML.loadFile(patchFile)){
+#if OF_VERSION_MAJOR == 0 && OF_VERSION_MINOR < 12
+        if (XML.loadFile(patchFile)){
+#else
+        if (XML.load(patchFile)){
+#endif
             int totalObjects = XML.getNumTags("object");
             for(int i=0;i<totalObjects;i++){
                 if(XML.pushTag("object", i)){
@@ -950,7 +976,11 @@ bool PatchObject::clearCustomVars(){
             }
         }
 
-        saved = XML.saveFile();
+#if OF_VERSION_MAJOR == 0 && OF_VERSION_MINOR < 12
+            saved = XML.saveFile();
+#else
+            saved = XML.save();
+#endif
 
     }
 
@@ -964,7 +994,11 @@ map<string,float> PatchObject::loadCustomVars(){
     ofxXmlSettings XML;
 
     if(patchFile != ""){
-        if(XML.loadFile(patchFile)){
+#if OF_VERSION_MAJOR == 0 && OF_VERSION_MINOR < 12
+        if (XML.loadFile(patchFile)){
+#else
+        if (XML.load(patchFile)){
+#endif
             int totalObjects = XML.getNumTags("object");
             for(int i=0;i<totalObjects;i++){
                 if(XML.pushTag("object", i)){
