@@ -101,6 +101,22 @@ inline std::string& sanitizeFilename(std::string& s){
 }
 
 //--------------------------------------------------------------
+inline std::vector<std::string> splitStringWithDelimiter(std::string s, std::string delimiter) {
+    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+    std::string token;
+    std::vector<std::string> res;
+
+    while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+        token = s.substr (pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        res.push_back (token);
+    }
+
+    res.push_back (s.substr (pos_start));
+    return res;
+}
+
+//--------------------------------------------------------------
 inline int nthOccurrence(const std::string& str, const std::string& findMe, int nth){
     size_t  pos = 0;
     int     cnt = 0;
@@ -413,6 +429,32 @@ inline void drawNodeOFTexture(ofTexture &tex, float &px, float &py, float &w, fl
             ofDrawRectangle(originX-(IMGUI_EX_NODE_PINS_WIDTH_NORMAL*retinaScale/zoom),originY-(IMGUI_EX_NODE_HEADER_HEIGHT*retinaScale/zoom),scaledW + (IMGUI_EX_NODE_PINS_WIDTH_NORMAL*retinaScale/zoom),scaledH + ((IMGUI_EX_NODE_HEADER_HEIGHT+IMGUI_EX_NODE_FOOTER_HEIGHT)*retinaScale/zoom) );
         }else{
             ofDrawRectangle(originX,originY-(IMGUI_EX_NODE_HEADER_HEIGHT*retinaScale/zoom),scaledW,scaledH + ((IMGUI_EX_NODE_HEADER_HEIGHT+IMGUI_EX_NODE_FOOTER_HEIGHT)*retinaScale/zoom) );
+        }
+    }
+
+}
+
+//--------------------------------------------------------------
+inline void calcTextureDims(ofTexture &tex, float &px, float &py, float &w, float &h, float originX, float originY, float scaledW, float scaledH, float zoom, float retinaScale=1.0f, bool hasInlets=true){
+
+    if(tex.isAllocated()){
+        if(tex.getWidth()/tex.getHeight() >= scaledW/scaledH){
+            if(tex.getWidth() > tex.getHeight()){   // horizontal texture
+                w           = scaledW;
+                h           = (scaledW/tex.getWidth())*tex.getHeight();
+                px          = 0;
+                py          = (scaledH-h)/2.0f;
+            }else{ // vertical texture
+                w           = (tex.getWidth()*scaledH)/tex.getHeight();
+                h           = scaledH;
+                px          = (scaledW-w)/2.0f;
+                py          = 0;
+            }
+        }else{ // always considered vertical texture
+            w               = (tex.getWidth()*scaledH)/tex.getHeight();
+            h               = scaledH;
+            px              = (scaledW-w)/2.0f;
+            py              = 0;
         }
     }
 

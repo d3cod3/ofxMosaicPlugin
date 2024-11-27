@@ -296,6 +296,7 @@ bool ImGuiEx::NodeCanvas::BeginNode( int nId, const char* _id, std::string name,
     }
     curNodeData.viewName = ImGuiExNodeView_None;
 
+
     // Adapt the layout for pins
     static int pinsWidth; pinsWidth = 0;
     /*if(curNodeData.zoomName == ImGuiExNodeZoom_Imploded){
@@ -327,7 +328,7 @@ bool ImGuiEx::NodeCanvas::BeginNode( int nId, const char* _id, std::string name,
         pinsWidth = IMGUI_EX_NODE_PINS_WIDTH_SMALL*scaleFactor;
         curNodeData.pinsFlags |= ImGuiExNodePinsFlags_Right;
         curNodeData.rightPins.region.Min.x -= pinsWidth;
-        curNodeData.innerContentBox.Max.x -= pinsWidth;
+        curNodeData.innerContentBox.Max.x -= pinsWidth-1;
 
         curNodeData.rightPins.numPins = _numRightPins;
         curNodeData.rightPins.pinSpace = ImVec2(curNodeData.rightPins.region.GetSize().x, curNodeData.rightPins.region.GetSize().y / _numRightPins);
@@ -351,10 +352,12 @@ bool ImGuiEx::NodeCanvas::BeginNode( int nId, const char* _id, std::string name,
         return false;
     }
     // Create node window
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));//IMGUI_EX_NODE_CONTENT_PADDING,IMGUI_EX_NODE_CONTENT_PADDING));
+
     ImGui::SetNextWindowPos(curNodeData.outerContentBox.Min);
     ImGui::SetNextWindowSize(curNodeData.outerContentBox.GetSize());
-    //ImGui::SetNextWindowSize(ImVec2(curNodeData.outerContentBox.GetSize().x,0.0f));
+
     bool ret = ImGui::Begin(_id, NULL,
                             ImGuiWindowFlags_NoMove
                             | ImGuiWindowFlags_NoBackground
@@ -366,6 +369,7 @@ bool ImGuiEx::NodeCanvas::BeginNode( int nId, const char* _id, std::string name,
                             );
     // Save draw context
     nodeDrawList = ImGui::GetWindowDrawList();
+
     bool nodeMenuIsOpen = false;
 
     ImGui::PopStyleVar(1);
@@ -546,7 +550,7 @@ bool ImGuiEx::NodeCanvas::BeginNode( int nId, const char* _id, std::string name,
     // Note: A column of 0 width will probably cause crashes
     ImGui::SetColumnOffset(0,0);
     ImGui::SetColumnOffset(1, std::max(curNodeData.leftPins.region.GetSize().x, 1.f));
-    ImGui::SetColumnOffset(2, std::max(curNodeData.innerContentBox.Max.x-curNodeData.leftPins.region.Min.x, 2.f));
+    ImGui::SetColumnOffset(2, std::max(curNodeData.innerContentBox.Max.x-curNodeData.leftPins.region.Min.x, 1.f));
 
     // move to middle column where the user can draw
     ImGui::NextColumn();
@@ -593,10 +597,10 @@ void ImGuiEx::NodeCanvas::EndNode() {
             ImGui::Dummy(ImVec2(-1,IMGUI_EX_NODE_CONTENT_PADDING)); // Padding bottom
             ImGui::EndColumns();
             ImGui::PopClipRect(); // Inner space + nodes
-        }
+        }*/
 
         // Always pop these ()
-        ImGui::PopClipRect();*/
+        ImGui::PopClipRect();
 
         //ImGui::EndGroup();
         ImGui::PopID();

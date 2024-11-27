@@ -56,8 +56,8 @@
 
 // Default values. You can override them in imconfig.h
 // Everything below is in screen pixels, actual size, non scaled.
-# define IMGUI_EX_NODE_MIN_WIDTH 40 // Minimum width. Items cannot be smaller.
-# define IMGUI_EX_NODE_MIN_HEIGHT 26 // Maximum height. Items cannot be smaller.
+# define IMGUI_EX_NODE_MIN_WIDTH 160 // Minimum width. Items cannot be smaller.
+# define IMGUI_EX_NODE_MIN_HEIGHT 120 // Minimum height. Items cannot be smaller.
 # define IMGUI_EX_NODE_HEADER_HEIGHT 20
 # define IMGUI_EX_NODE_HEADER_TOOLBAR_WIDTH 80 // Fixed needed width
 # define IMGUI_EX_NODE_MIN_WIDTH_SMALL (IMGUI_EX_NODE_HEADER_TOOLBAR_WIDTH + 40) // Min before entering simplified "imploded" render state. Advised to be 30px+ bigger then IMGUI_EX_NODE_HEADER_TOOLBAR_WIDTH
@@ -66,7 +66,7 @@
 # define IMGUI_EX_NODE_FOOTER_HEIGHT 6
 # define IMGUI_EX_NODE_FOOTER_HANDLE_SIZE 16
 # define IMGUI_EX_NODE_CONTENT_PADDING 4
-# define IMGUI_EX_NODE_PINS_WIDTH_SMALL 10
+# define IMGUI_EX_NODE_PINS_WIDTH_SMALL 12
 # define IMGUI_EX_NODE_PINS_WIDTH_NORMAL 20
 # define IMGUI_EX_NODE_PINS_WIDTH_LARGE 50
 # define IMGUI_EX_NODE_PIN_WIDTH 8
@@ -249,11 +249,9 @@ struct NodeCanvas {
     //void SetDisplayRect(const ImRect& _rect);
 
     // Retina stuff
-    void setRetina(bool retina){
+    void setRetina(bool retina,float sf){
         isRetina = retina;
-        if(retina){
-            scaleFactor = 2.0f;
-        }
+        scaleFactor = sf;
     }
 
     // Query GUI if any nodes are hovered
